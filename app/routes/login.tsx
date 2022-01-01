@@ -6,6 +6,7 @@ import {
   json,
   useActionData
 } from 'remix';
+import { login, createUserSession } from '~/utils/session.server';
 import { db } from '~/utils/db.server';
 import styleUrl from '~/styles/login.css';
 
@@ -57,10 +58,16 @@ export const action: ActionFunction = async ({ request }) => {
 
   switch(loginType) {
     case "login": {
-      return badRequest({
-        fields,
-        formError: 'Not implemented'
-      });
+      const user = await login({ username, password });
+      
+      if(!user) {
+        return badRequest({
+          fields,
+          formError: `Username/Password combination is incorrect`
+        });
+      }
+
+      return createUserSession(user.id, redirectTo);
     }
 
     case "register": {
