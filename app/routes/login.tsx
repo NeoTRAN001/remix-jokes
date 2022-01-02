@@ -6,7 +6,7 @@ import {
   json,
   useActionData
 } from 'remix';
-import { login, createUserSession } from '~/utils/session.server';
+import { login, createUserSession, register } from '~/utils/session.server';
 import { db } from '~/utils/db.server';
 import styleUrl from '~/styles/login.css';
 
@@ -80,10 +80,15 @@ export const action: ActionFunction = async ({ request }) => {
         formError: `User with username ${username} already exists`
       });
 
-      return badRequest({
-        fields,
-        formError: "Not implemented"
-      });
+      const user = await register({ username, password });
+      if(!user) {
+        return badRequest({
+          fields,
+          formError: `Something wen wrong trying to create a new user.`
+        })
+      }
+
+      return createUserSession(user.id, redirectTo);
     }
 
     default: {
